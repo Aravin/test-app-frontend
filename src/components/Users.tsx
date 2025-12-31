@@ -33,6 +33,14 @@ const CREATE_USER = gql`
   }
 `
 
+const DELETE_USER = gql`
+  mutation DeleteUser($id: String!) {
+    removeUser(id: $id) {
+      id
+    }
+  }
+`
+
 function Users() {
   const { loading, error, data, refetch } = useQuery(GET_USERS)
   const [createUser] = useMutation(CREATE_USER, {
@@ -40,6 +48,15 @@ function Users() {
       refetch()
       setName('')
       setEmail('')
+    },
+  })
+  const [deleteUser] = useMutation(DELETE_USER, {
+    onCompleted: () => {
+      refetch()
+    },
+    onError: (error) => {
+      console.error('Error deleting user:', error)
+      alert('Failed to delete user. Please try again.')
     },
   })
   const [name, setName] = useState('')
@@ -54,6 +71,16 @@ function Users() {
             name,
             email,
           },
+        },
+      })
+    }
+  }
+
+  const handleDelete = (userId: string) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      deleteUser({
+        variables: {
+          id: userId,
         },
       })
     }
@@ -97,6 +124,13 @@ function Users() {
                 <h3>{user.name}</h3>
                 <p>{user.email}</p>
                 <span className="user-id">ID: {user.id}</span>
+                <button
+                  onClick={() => handleDelete(user.id)}
+                  className="delete-button"
+                  aria-label="Delete user"
+                >
+                  Delete
+                </button>
               </div>
             ))}
           </div>

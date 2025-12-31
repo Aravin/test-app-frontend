@@ -54,6 +54,10 @@ function Users() {
     onCompleted: () => {
       refetch()
     },
+    onError: (error) => {
+      console.error('Error deleting user:', error)
+      alert('Failed to delete user. Please try again.')
+    },
   })
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')

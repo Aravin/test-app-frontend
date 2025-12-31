@@ -182,7 +182,7 @@ function Users() {
 
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}
-        title="localhost:3000 says"
+        title="Confirm Delete"
         message="Are you sure you want to delete this user?"
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}

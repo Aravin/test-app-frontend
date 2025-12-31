@@ -2,6 +2,7 @@ import { useQuery, useMutation } from '@apollo/client/react'
 import { gql } from '@apollo/client'
 import { useState } from 'react'
 import './Users.css'
+import ConfirmDialog from './ConfirmDialog'
 
 const GET_USERS = gql`
   query GetUsers {
@@ -33,6 +34,14 @@ const CREATE_USER = gql`
   }
 `
 
+const DELETE_USER = gql`
+  mutation DeleteUser($id: String!) {
+    removeUser(id: $id) {
+      id
+    }
+  }
+`
+
 function Users() {
   const { loading, error, data, refetch } = useQuery(GET_USERS)
   const [createUser] = useMutation(CREATE_USER, {
@@ -42,8 +51,21 @@ function Users() {
       setEmail('')
     },
   })
+  const [deleteUser] = useMutation(DELETE_USER, {
+    onCompleted: () => {
+      refetch()
+    },
+    onError: (error) => {
+      console.error('Error deleting user:', error)
+      alert('Failed to delete user. Please try again.')
+    },
+  })
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    userId: '',
+  })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -57,6 +79,23 @@ function Users() {
         },
       })
     }
+  }
+
+  const handleDelete = (userId: string) => {
+    setConfirmDialog({ isOpen: true, userId })
+  }
+
+  const handleConfirmDelete = () => {
+    deleteUser({
+      variables: {
+        id: confirmDialog.userId,
+      },
+    })
+    setConfirmDialog({ isOpen: false, userId: '' })
+  }
+
+  const handleCancelDelete = () => {
+    setConfirmDialog({ isOpen: false, userId: '' })
   }
 
   if (loading) return <div className="loading">Loading users...</div>
@@ -97,6 +136,13 @@ function Users() {
                 <h3>{user.name}</h3>
                 <p>{user.email}</p>
                 <span className="user-id">ID: {user.id}</span>
+                <button
+                  onClick={() => handleDelete(user.id)}
+                  className="delete-button"
+                  aria-label="Delete user"
+                >
+                  Delete
+                </button>
               </div>
             ))}
           </div>
@@ -133,6 +179,14 @@ function Users() {
           </button>
         </form>
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title="Confirm Delete"
+        message="Are you sure you want to delete this user?"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
     </div>
   )
 }
